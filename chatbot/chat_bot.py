@@ -7,15 +7,15 @@ from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 
 # self.__gemini_2_0_f_lite = GoogleLLM('gemini-2.0-flash-lite', 0.0).get_llm()
 # self.__gemini_2_5_pro_exp = GoogleLLM('gemini-2.5-pro-exp-03-25', 0.0).get_llm()
+# self.__gemini_2_0_f = GoogleLLM('gemini-2.0-flash', 0.0).get_llm()
 
 class ChatBot:
     def __init__(self):
-        self.__gemini_2_0_f = GoogleLLM('gemini-2.0-flash', 0.0).get_llm()
+        self.__gemini = GoogleLLM('gemini-2.0-flash-lite', 0.0).get_llm()
         self.__db = get_aiven_db()
-        self.__sql_toolkit = SQLDatabaseToolkit(db=self.__db, llm=self.__gemini_2_0_f)
-        self.__sql_agent = create_sql_agent(llm=self.__gemini_2_0_f, toolkit=self.__sql_toolkit, verbose=True)
-        # self.__run()
-
+        self.__sql_toolkit = SQLDatabaseToolkit(db=self.__db, llm=self.__gemini)
+        self.__sql_agent = create_sql_agent(llm=self.__gemini, toolkit=self.__sql_toolkit, verbose=True)
+        self.__run()
         # result = self.runnable_pipeline(csv_path, query_prompt)
 
     def runnable_pipeline(self, csv_path, query_prompt):
@@ -30,7 +30,7 @@ class ChatBot:
         return branch.invoke({"query": query_prompt})
 
     def __invoke_agent(self, query: str):
-        return self.__sql_agent.invoke({'input': query})
+        return self.__sql_agent.invoke({'input': query})['output']
 
 
     def __run(self):
