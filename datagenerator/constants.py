@@ -1,7 +1,7 @@
 from datetime import datetime
 
-NUM_PRODUCTS = 1
-NUM_SITES = 1
+NUM_PRODUCTS = 5
+NUM_SITES = 20
 DAYS_OF_DATA = 1827  # 5 years
 START_DATE = datetime(2020, 1, 1)
 COUNTRIES = ['US', 'MX', 'CA', 'CO', 'EC', 'PE']

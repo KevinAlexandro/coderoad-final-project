@@ -1,2 +1,21 @@
 site_code,country,city,zip_code,channel
-CA100,CA,Toronto,69261,wholesaler
+US100,US,Phoenix,45091,distributor
+PE101,PE,Lima,20426,distributor
+CO102,CO,Barranquilla,75993,distributor
+CO103,CO,Medellin,45961,wholesaler
+CO104,CO,Barranquilla,02378,wholesaler
+CA105,CA,Montreal,35499,distributor
+MX106,MX,Guadalajara,88893,self-service
+MX107,MX,Mexico City,74852,retailer
+CO108,CO,Cali,49502,wholesaler
+EC109,EC,Guayaquil,82440,retailer
+EC110,EC,Loja,47355,distributor
+CA111,CA,Calgary,67065,distributor
+CO112,CO,Medellin,25673,wholesaler
+CO113,CO,Bogota,46039,retailer
+PE114,PE,Lima,29248,retailer
+EC115,EC,Guayaquil,68362,retailer
+CO116,CO,Cartagena,63755,retailer
+MX117,MX,Guadalajara,56534,wholesaler
+EC118,EC,Guayaquil,18729,wholesaler
+CA119,CA,Ottawa,20225,wholesaler

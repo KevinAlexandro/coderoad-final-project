@@ -3,7 +3,6 @@ import random
 
 from faker import Faker
 from datetime import datetime, timedelta
-from collections import defaultdict
 from constants import (CATEGORIES, BRAND_NAMES, PACKAGE_TYPES, CITIES, COUNTRIES, CHANNELS, NUM_PRODUCTS, NUM_SITES,
                        DAYS_OF_DATA, START_DATE)
 from stock_manager import StockManager
@@ -193,8 +192,7 @@ class DataGenerator:
         print("Generating sales data... (this may take a moment)")
         sales_df = self.__generate_sales(products_df, sites_df, DAYS_OF_DATA, START_DATE)
     
-        print("Updating stock levels based on sales...")
-        # updated_stock_df = self.__update_stock(stock_df, sales_df)
+        print("Updating sales based on stock levels and stock levels based on sales...")
         updated_stock_df, updated_sales = stock_manager.generate_stock_update_sales(sales_df)
     
         return {
