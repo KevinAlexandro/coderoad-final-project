@@ -2,7 +2,7 @@ from typing import Literal, Dict
 from langchain.agents.agent import AgentExecutor
 
 class ChainRouter:
-    def __init__(self, classifier_chain, sql_agent: AgentExecutor, prediction_chain):
+    def __init__(self, classifier_chain, prediction_chain, sql_agent: AgentExecutor):
         self.__classifier_chain = classifier_chain
         self.__sql_agent = sql_agent
         self.__prediction_chain = prediction_chain
@@ -21,7 +21,7 @@ class ChainRouter:
         # First get data from SQL
         sql_result = self.__sql_agent.invoke({"input": question})
         # Then analyze it
-        return prediction_chain.invoke({"question": question, "sql_result": sql_result})
+        return self.__prediction_chain.invoke({"question": question, "sql_result": sql_result})
 
-    def handle_other(info: Dict):
+    def handle_other(self, info: Dict):
         return "I don't know"
