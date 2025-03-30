@@ -15,7 +15,7 @@ class DataGenerator:
         self.__faker = Faker()
         self.__run()
     
-    # Generate product data
+    # Generate product raw_data
     def __generate_products(self, num_products):
         products = []
         sku_counter = 1000  # Starting SKU
@@ -49,7 +49,7 @@ class DataGenerator:
         return pd.DataFrame(products)
     
     
-    # Generate site data
+    # Generate site raw_data
     def __generate_sites(self, num_sites):
         sites = []
         site_code_counter = 100  # Starting site code
@@ -99,7 +99,7 @@ class DataGenerator:
 
         return max(0, int(round(base_sales + random.uniform(-limit_sales_modifier, limit_sales_modifier))))
     
-    # Generate sales data with realistic trends
+    # Generate sales raw_data with realistic trends
     def __generate_sales(self, products_df, sites_df, days_of_data, start_date):
         sales_data = []
         date_range = [start_date + timedelta(days=i) for i in range(days_of_data)]
@@ -177,7 +177,7 @@ class DataGenerator:
     
         return pd.DataFrame(sales_data)
 
-    # Main data generation function
+    # Main raw_data generation function
     def __generate_all_data(self):
         print("Generating products...")
         products_df = self.__generate_products(NUM_PRODUCTS)
@@ -189,7 +189,7 @@ class DataGenerator:
         stock_manager = StockManager(products_df, sites_df)
         stock_manager.generate_first_stock()
     
-        print("Generating sales data... (this may take a moment)")
+        print("Generating sales raw_data... (this may take a moment)")
         sales_df = self.__generate_sales(products_df, sites_df, DAYS_OF_DATA, START_DATE)
     
         print("Updating sales based on stock levels and stock levels based on sales...")
@@ -206,10 +206,10 @@ class DataGenerator:
         data = self.__generate_all_data()
 
         # Save to CSV files
-        data['products'].to_csv('../data/products.csv', index=False)
-        data['sites'].to_csv('../data/sites.csv', index=False)
-        data['stock'].to_csv('../data/stock.csv', index=False)
-        data['sales'].to_csv('../data/sales.csv', index=False)
+        data['products'].to_csv('../raw_data/products.csv', index=False)
+        data['sites'].to_csv('../raw_data/sites.csv', index=False)
+        data['stock'].to_csv('../raw_data/stock.csv', index=False)
+        data['sales'].to_csv('../raw_data/sales.csv', index=False)
 
         print("Data generation complete! Files saved as:")
         print("- products.csv")
@@ -218,6 +218,6 @@ class DataGenerator:
         print("- sales.csv")
 
 
-# Generate and save all data
+# Generate and save all raw_data
 if __name__ == "__main__":
     DataGenerator()
