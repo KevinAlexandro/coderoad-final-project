@@ -19,7 +19,7 @@ class ChainRouter:
 
     def handle_prediction(self, info: Dict):
         question = info["question"]
-        # First get data from SQL
+        # First get raw_data from SQL
         set_up_data = self.__set_up_sql_agent.invoke({"input": question})
         print('----------------------------------------------------------')
         print("This is the question: ", question)

@@ -24,7 +24,7 @@ class ChatBot:
         # set_debug(True)
         # set_verbose(True)
         self.__prompt_generator = PromptGenerator()
-        self.__llm = GoogleLLM('gemini-2.0-flash', 0.0).get_llm()
+        self.__llm = GoogleLLM('gemini-2.0-flash-lite', 0.0).get_llm()
         self.__db = get_aiven_db()
         self.__sql_toolkit = SQLDatabaseToolkit(db=self.__db, llm=self.__llm)
         self.__sql_agent = create_sql_agent(llm=self.__llm, toolkit=self.__sql_toolkit, verbose=True)

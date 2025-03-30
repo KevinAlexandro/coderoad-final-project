@@ -9,4 +9,4 @@ class SqlAgent(create_sql_agent):
 
 
     def get_instance(self):
-        return SqlAgent('This is a prediction question. Retrieve historical data that could lead to an informed prediction. Do not make the prediction. Only provide data and short sentences of at most 3 possible approaches to make a prediction.')
+        return SqlAgent('This is a prediction question. Retrieve historical raw_data that could lead to an informed prediction. Do not make the prediction. Only provide raw_data and short sentences of at most 3 possible approaches to make a prediction.')
