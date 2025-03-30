@@ -21,11 +21,6 @@ class ChainRouter:
         question = info["question"]
         # First get raw_data from SQL
         set_up_data = self.__set_up_sql_agent.invoke({"input": question})
-        print('----------------------------------------------------------')
-        print("This is the question: ", question)
-        print(set_up_data)
-        print('----------------------------------------------------------')
-
         # Then analyze it
         return self.__prediction_chain.invoke({"question": question, "set_up_data": set_up_data})
 
