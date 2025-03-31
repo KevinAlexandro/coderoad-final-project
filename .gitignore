@@ -242,3 +242,5 @@ fabric.properties
 .idea/misc.xml
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/.gitignore
+trusted_data/*
+refined_data/*
