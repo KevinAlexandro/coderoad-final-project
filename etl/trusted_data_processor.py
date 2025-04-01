@@ -76,11 +76,12 @@ class TrustedDataProcessor(DataProcessor):
 
         daily_with_iqr = daily_sales.join(monthly_stats, ["year", "month"]) \
             .withColumn("iqr", F.col("q3") - F.col("q1")) \
-            .withColumn("lower_bound", F.col("q1") - 1.5 * F.col("iqr")) \
-            .withColumn("upper_bound", F.col("q3") + 1.5 * F.col("iqr"))
+            .withColumn("monthly_lower_bound", F.col("q1") - 1.5 * F.col("iqr")) \
+            .withColumn("monthly_upper_bound", F.col("q3") + 1.5 * F.col("iqr"))
 
         special_days_for_sales = daily_with_iqr.filter(
-            (col("daily_sales") < col("lower_bound")) | (col("daily_sales") > col("upper_bound")))
+            (col("daily_sales") < col("monthly_lower_bound")) | (col("daily_sales") > col("monthly_upper_bound")))
+        special_days_for_sales = special_days_for_sales.drop('q1','q3','iqr')
         self._write_csv('special_days_for_sales', special_days_for_sales)
 
         # ======================Stock Analysis=================================
