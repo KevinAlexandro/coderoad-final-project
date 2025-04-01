@@ -1,65 +1,73 @@
+import pycountry
 from os.path import split
 from pyspark.sql.functions import *
 from data_processor import DataProcessor
+from pyspark.sql import DataFrame
 from enum import Enum
+from pyspark.sql import Row
+from datetime import datetime, date
 
-# Ranges from 1 for a Sunday through to 7 for a Saturday
-DAYS = {
-    1: "Sunday",
-    2: "Monday",
-    3: "Tuesday",
-    4: "Wednesday",
-    5: "Thursday",
-    6: "Friday",
-    7: "Saturday"
-}
 
 class RawDataProcessor(DataProcessor):
 
     def __init__(self):
         super().__init__()
-        self.__products, self.__sites, self.__sales, self.__stock = self.__get_data_local()
+        self.__products_df, self.__sites_df, self.__sales_df, self.__stock_df = self.__get_data_local()
         self._process()
 
-    def _set_working_folder(self):
+    @staticmethod
+    def _set_working_folder():
         return '../raw_data/'
 
-    def _set_destiny_folder(self):
+    @staticmethod
+    def _set_destiny_folder():
         return '../trusted_data/'
+
+    def get_country_df(self):
+        country_tuples = [(c.alpha_2, c.name) for c in pycountry.countries]
+        return self._spark.createDataFrame(country_tuples, ['country_code', 'country_name'])
+
+    @staticmethod
+    def __transform_date(df: DataFrame):
+        trusted_date_df = (df
+                           .withColumn('year', year(col('date')))
+                           .withColumn('month', month(col('date')))
+                           .withColumn('day', day(col('date')))
+                           .withColumn('day_of_week', dayofweek(col('date')) - 1)
+                           # Ranges from 0 for a Sunday through to 6 for a Saturday in PostgresSQL
+                           )
+        trusted_date_df = trusted_date_df.withColumnRenamed('date', 'full_date')
+        return trusted_date_df
 
     def __get_data_local(self):
         files = ['products', 'sites', 'sales', 'stock']
         data = []
-
         for file in files:
             data.append(self._spark.read.csv(path=f'{self._working_folder}{file}.csv', sep=',', header=True))
 
         return data
 
     def __transform_products(self):
-        # no need to change anything in products
-        self._write_csv('products', self.__products)
+        trusted_products = self.__products_df.withColumn(
+            'units_per_package',
+            when(lower(col('package_type')) == 'single', 1)
+            .otherwise(regexp_extract(col('package_type'), r'^(\d+)', 1).cast('int'))
+        )
+        self._write_csv('products', trusted_products)
 
     def __transform_sites(self):
-        # no need to change anything in sites
-        self._write_csv('sites', self.__sites)
+        # Join with main DataFrame
+        trusted_sites = self.__sites_df.withColumnRenamed('country', 'country_code')
+        trusted_sites = trusted_sites.join(self.get_country_df(), how='left', on='country_code')
+        self._write_csv('sites', trusted_sites)
 
     def __transform_sales(self):
-        # trusted_sales = self.__sales.withColumn('year', year(col('date')))
-        # trusted_sales = trusted_sales.withColumn('month', month(col('date')))
-        # trusted_sales = trusted_sales.withColumn('day', day(col('date')))
-        #
-        # trusted_sales = trusted_sales.withColumn('day_of_week', create_map([lit(x) for x in DAYS.items()])[col('day_of_week_num')])
-        trusted_sales = (self.__sales
-                         .withColumn('year', year(col('date')))
-                         .withColumn('month', month(col('date')))
-                         .withColumn('day', day(col('date')))
-                         .withColumn('day_of_week', create_map([lit(x) for x in DAYS.items()])[col('day_of_week_num')])
-                         )
-        trusted_sales.show()
+        trusted_sales = self.__transform_date(self.__sales_df)
+        self._write_csv('sales', trusted_sales)
 
     def __transform_stock(self):
-        pass
+        trusted_stock = self.__transform_date(self.__stock_df)
+        self._write_csv('stock', trusted_stock)
 
     def _process(self):
         self.__transform_products()
