@@ -1,11 +1,7 @@
 import pycountry
-from os.path import split
 from pyspark.sql.functions import *
 from data_processor import DataProcessor
 from pyspark.sql import DataFrame
-from enum import Enum
-from pyspark.sql import Row
-from datetime import datetime, date
 
 
 class RawDataProcessor(DataProcessor):
@@ -33,8 +29,7 @@ class RawDataProcessor(DataProcessor):
                            .withColumn('year', year(col('date')))
                            .withColumn('month', month(col('date')))
                            .withColumn('day', day(col('date')))
-                           .withColumn('day_of_week', dayofweek(col('date')) - 1)
-                           # Ranges from 0 for a Sunday through to 6 for a Saturday in PostgresSQL
+                           .withColumn('weekday_name', date_format(col('date'), 'EEEE'))
                            )
         trusted_date_df = trusted_date_df.withColumnRenamed('date', 'full_date')
         return trusted_date_df
@@ -67,6 +62,7 @@ class RawDataProcessor(DataProcessor):
 
     def __transform_stock(self):
         trusted_stock = self.__transform_date(self.__stock_df)
+        trusted_stock = trusted_stock.withColumnRenamed('stock', 'quantity')
         self._write_csv('stock', trusted_stock)
 
     def _process(self):
