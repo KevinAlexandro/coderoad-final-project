@@ -27,8 +27,8 @@ class ChatBot:
         self.__llm = GoogleLLM('gemini-2.0-flash-lite', 0.0).get_llm()
         self.__db = get_aiven_db()
         self.__sql_toolkit = SQLDatabaseToolkit(db=self.__db, llm=self.__llm)
-        self.__sql_agent = create_sql_agent(llm=self.__llm, toolkit=self.__sql_toolkit)
-        self.__set_up_sql_agent = create_sql_agent(llm=self.__llm, toolkit=self.__sql_toolkit,
+        self.__sql_agent = create_sql_agent(llm=self.__llm, toolkit=self.__sql_toolkit, verbose=True, handle_parsing_errors=True)
+        self.__set_up_sql_agent = create_sql_agent(llm=self.__llm, toolkit=self.__sql_toolkit, verbose=True, handle_parsing_errors=True,
                                                    prefix=get_set_up_prediction_prefix())
         self.__router = self.__get_router()
         self.__run()

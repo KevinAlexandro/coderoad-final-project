@@ -3,6 +3,7 @@ from data_processor import DataProcessor
 from pyspark.sql.functions import *
 from pyspark.sql.window import Window
 
+
 class TrustedDataProcessor(DataProcessor):
     def __init__(self):
         super().__init__()
@@ -44,7 +45,7 @@ class TrustedDataProcessor(DataProcessor):
         enriched_stock_df = enriched_stock_df.withColumnRenamed('quantity', 'items_in_stock')
         return enriched_stock_df
 
-    def __generate_insights(self, enriched_sales_df:DataFrame, enriched_stock_df: DataFrame):
+    def __generate_insights(self, enriched_sales_df: DataFrame, enriched_stock_df: DataFrame):
         # ======== historical sales per month =================
         sales_per_month = (enriched_sales_df.groupBy('month', 'year', 'product_name').agg(
             sum('items_sold').cast('integer').alias('items_sold')))
@@ -54,19 +55,33 @@ class TrustedDataProcessor(DataProcessor):
             sum('items_sold').cast('integer').alias('items_sold')))
         self._write_csv('summary_sales_per_weekday', sales_per_weekday)
         # ======== popularity score per month =================
-        monthly_popularity_score = (enriched_sales_df.groupBy('month', 'year', 'product_name').agg(
-            sum('units_sold').cast('integer').alias('product_popularity_score')))
-        agg_stats = monthly_popularity_score.agg(
-            F.min('product_popularity_score').alias('min_popularity'),
-            F.max('product_popularity_score').alias('max_popularity')
-        ).collect()[0]
-        min_popularity_score = agg_stats['min_popularity']
-        max_popularity_score = agg_stats['max_popularity']
-        monthly_popularity_score = (monthly_popularity_score
-                                    .withColumn('product_popularity_score', (
-                    (col('product_popularity_score') - min_popularity_score) / (
-                        max_popularity_score - min_popularity_score)) * 100))
+        percentiles = (
+            enriched_sales_df.groupBy("month", "year", "product_name")
+            .agg(F.sum("units_sold").cast("integer").alias("total_units_sold"))
+            .groupBy("month", "year")
+            .agg(
+                expr("percentile_approx(total_units_sold, 0.25)").alias("p25"),
+                expr("percentile_approx(total_units_sold, 0.50)").alias("p50"),
+                expr("percentile_approx(total_units_sold, 0.75)").alias("p75"),
+                F.min("total_units_sold").alias("min_sold"),
+                F.max("total_units_sold").alias("max_sold")
+            )
+        )
+        monthly_popularity_score = (
+            enriched_sales_df.groupBy("month", "year", "product_name")
+            .agg(F.sum("units_sold").cast("integer").alias("total_units_sold"))
+            .join(percentiles, ["month", "year"])
+            .withColumn("popularity_score",
+                        when(col("total_units_sold") >= col("p75"), lit(80) + (lit(20) * (col("total_units_sold") - col("p75")) / (col("max_sold") - col("p75"))))
+                        .when(col("total_units_sold") >= col("p50"), lit(50) + (lit(30) * (col("total_units_sold") - col("p50")) / (col("p75") - col("p50"))))
+                        .when(col("total_units_sold") >= col("p25"), lit(20) + (lit(30) * (col("total_units_sold") - col("p25")) / (col("p50") - col("p25"))))
+                .otherwise((lit(20) * (col("total_units_sold") - col("min_sold"))) / (col("p25") - col("min_sold")))
+            )
+            .withColumn("popularity_score", least(greatest(col("popularity_score"), lit(0)), lit(100)))
+        )
+        monthly_popularity_score = monthly_popularity_score.drop('p25', 'p50', 'p75')
         self._write_csv('monthly_popularity_score', monthly_popularity_score)
+
         # ======================Special Days=================================
         daily_sales = enriched_sales_df.groupBy("year", "month", "day").agg(
             sum("items_sold").cast('integer').alias("daily_sales"))
@@ -81,7 +96,7 @@ class TrustedDataProcessor(DataProcessor):
 
         special_days_for_sales = daily_with_iqr.filter(
             (col("daily_sales") < col("monthly_lower_bound")) | (col("daily_sales") > col("monthly_upper_bound")))
-        special_days_for_sales = special_days_for_sales.drop('q1','q3','iqr')
+        special_days_for_sales = special_days_for_sales.drop('q1', 'q3', 'iqr')
         self._write_csv('special_days_for_sales', special_days_for_sales)
 
         # ======================Stock Analysis=================================
