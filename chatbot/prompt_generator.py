@@ -33,8 +33,8 @@ class PromptGenerator:
                 </question>
                 
                 The following set_up_data has two parts:
-                - a description of the set_up_data retrieved which is provided between the tags <description> and </description>
-                - the data retrieved for forecasting which is provided between the tags <set_up_data> and </set_up_data> 
+                - a description of the set_up_data retrieved which is provided between the tags ########### Start of Description ########### and ########### End of Description ###########
+                - the data retrieved for forecasting which is provided between the tags ########### Start of data_retrieved ########### and ########### End of data_retrieved ########### 
                 
                 <set_up_data>
                 {set_up_data}

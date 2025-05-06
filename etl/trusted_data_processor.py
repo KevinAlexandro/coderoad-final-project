@@ -1,7 +1,6 @@
 import pyspark.sql.functions as F
 from data_processor import DataProcessor
 from pyspark.sql.functions import *
-from pyspark.sql.window import Window
 
 
 class TrustedDataProcessor(DataProcessor):

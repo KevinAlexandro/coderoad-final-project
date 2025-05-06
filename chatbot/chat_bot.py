@@ -17,6 +17,7 @@ from router import ChainRouter
 # self.__llm = GoogleLLM('gemini-2.0-flash', 0.0).get_llm()
 # self.__llm = DeepSeekLLM('deepseek-chat', 0.0).get_llm()
 # self.__llm = OpenAILLM('davinci-002', 0.0).get_llm()
+# self.__llm = HuggingFaceHub('google/flan-ul2', 0.0).get_llm()
 
 class ChatBot:
 
@@ -27,9 +28,11 @@ class ChatBot:
         self.__llm = GoogleLLM('gemini-2.0-flash-lite', 0.0).get_llm()
         self.__db = get_aiven_db()
         self.__sql_toolkit = SQLDatabaseToolkit(db=self.__db, llm=self.__llm)
-        self.__sql_agent = create_sql_agent(llm=self.__llm, toolkit=self.__sql_toolkit, verbose=True, handle_parsing_errors=True)
-        self.__set_up_sql_agent = create_sql_agent(llm=self.__llm, toolkit=self.__sql_toolkit, verbose=True, handle_parsing_errors=True,
+        self.__sql_agent = create_sql_agent(llm=self.__llm, toolkit=self.__sql_toolkit)
+        self.__sql_agent.handle_parsing_errors =True
+        self.__set_up_sql_agent = create_sql_agent(llm=self.__llm, toolkit=self.__sql_toolkit,
                                                    prefix=get_set_up_prediction_prefix())
+        self.__set_up_sql_agent.handle_parsing_errors = True
         self.__router = self.__get_router()
         self.__run()
 
